@@ -22,4 +22,3 @@ python-dotenv==1.0.0
 # Testing
 pytest==7.4.3
 httpx==0.25.2
-```
