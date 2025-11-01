@@ -4,7 +4,8 @@ Swing Trade Basket Generator API
 Author: Breno Afonso
 """
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
+import json
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
@@ -107,7 +108,10 @@ async def get_market_data(ticker: str):
 
 
 @app.post("/api/gerar-basket", response_model=BasketOutput)
-async def gerar_basket(trade: TradeInput, clientes_file: UploadFile = File(...)):
+async def gerar_basket(
+    trade: str = Form(...),
+    clientes_file: UploadFile = File(...)
+):
     """
     Generate complete order basket
     
@@ -119,10 +123,14 @@ async def gerar_basket(trade: TradeInput, clientes_file: UploadFile = File(...))
     5. Generate Excel for brokerage
     """
     try:
-        logger.info(f"Generating basket for {trade.ticker}")
+        # PaConvert JSON string to TradeInput
+        trade_data = json.loads(trade)
+        trade_obj = TradeInput(**trade_data)
+        
+        logger.info(f"Generating basket for {trade_obj.ticker}")
         
         # Validate trade
-        validation = trade_validator.validate_trade(trade)
+        validation = trade_validator.validate_trade(trade_obj)
         
         if not validation.valid:
             return BasketOutput(
@@ -150,7 +158,7 @@ async def gerar_basket(trade: TradeInput, clientes_file: UploadFile = File(...))
         for _, row in df_clients.iterrows():
             try:
                 client = Client(
-                    account_number=str(row['NUMERO_CONTA']),
+                    account_number=str(row['NUMERO CONTA']),
                     equity_advisor=str(row.get('ASSESSOR RV', '')),
                     advisor=str(row.get('ADVISOR', '')),
                     client_name=str(row['CLIENTE']),
@@ -169,11 +177,11 @@ async def gerar_basket(trade: TradeInput, clientes_file: UploadFile = File(...))
         logger.info(f"Eligible: {len(eligible_clients)}/{len(clients)}")
         
         # Generate orders
-        orders = basket_calculator.generate_basket(trade, eligible_clients, validation)
+        orders = basket_calculator.generate_basket(trade_obj, eligible_clients, validation)
         
         # Generate Excel
         if orders:
-            excel_path = excel_generator.generate_excel(orders, trade.ticker)
+            excel_path = excel_generator.generate_excel(orders, trade_obj.ticker)
             logger.info(f"Excel generated: {excel_path}")
         
         # Calculate summary
