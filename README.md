@@ -1,5 +1,11 @@
 # Swing Trade Basket Generator 
 
+![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.104-009688.svg)
+![Pandas](https://img.shields.io/badge/Pandas-2.0-150458.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+
+
 Automated order basket generation system for swing trading operations with technical validation and risk management.
 
 ## Problem Statement
